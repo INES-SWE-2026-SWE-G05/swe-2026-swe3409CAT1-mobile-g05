@@ -52,7 +52,7 @@ function DeliveryRow({ item }: { item: Delivery }) {
     <View style={styles.row}>
       <View style={styles.rowLeft}>
         <Text style={styles.farmerId}>{item.farmerId}</Text>
-        <Text style={styles.meta}>{item.litres} L · {item.tempC}°C · {item.hoursSinceMilking}h</Text>
+        <Text style={styles.meta}>{item.litres.toFixed(1)} L · {item.tempC}°C · {item.hoursSinceMilking}h</Text>
       </View>
       <View style={styles.rowRight}>
         <RiskChip risk={risk} />
