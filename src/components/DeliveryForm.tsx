@@ -55,7 +55,7 @@ export default function DeliveryForm({ onSave }: Props) {
   const handleChange = (field: Field, raw: string) => {
     const updated: NewDelivery = {
       ...form,
-      [field]: field === 'farmerId' ? raw : parseFloat(raw) || 0,
+      [field]: field === 'farmerId' ? raw.trim().toUpperCase() : parseFloat(raw) || 0,
     };
     setForm(updated);
     if (touched[field]) validate(updated);
