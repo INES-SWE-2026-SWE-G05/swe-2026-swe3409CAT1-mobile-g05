@@ -35,6 +35,9 @@ export async function pingServer(): Promise<boolean> {
 }
 
 // ── useServerHealth hook ──────────────────────────────────────
+/** @deprecated use HealthState */
+export type HealthStatus = HealthState;
+
 export type HealthState = {
   /** true when /health returned 200 on the most recent ping */
   online:   boolean;
