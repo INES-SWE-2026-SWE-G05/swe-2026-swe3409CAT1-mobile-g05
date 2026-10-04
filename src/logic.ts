@@ -116,3 +116,11 @@ export function totals(deliveries: Delivery[]): {
     highRisk: deliveries.filter(d => riskLabel(d.riskScore ?? 0) === 'HIGH').length,
   };
 }
+
+export function riskColour(label: 'LOW' | 'MEDIUM' | 'HIGH'): string {
+  switch (label) {
+    case 'HIGH':   return '#ef4444';
+    case 'MEDIUM': return '#f59e0b';
+    default:       return '#22c55e';
+  }
+}
