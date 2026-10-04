@@ -13,6 +13,9 @@
  * null (or fallback values) so the app stays usable offline.
  */
 import { BASE_URL, TIMEOUT_MS } from './config';
+
+/** Max automatic retries for getRisk before giving up. */
+const MAX_RETRIES = 2;
 import type { NewDelivery, Delivery } from './logic';
 
 export type RiskResponse   = { risk_score: number; risk_label: 'LOW' | 'MEDIUM' | 'HIGH' };
