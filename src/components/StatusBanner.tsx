@@ -22,7 +22,7 @@ export default function StatusBanner() {
     return (
       <View style={[styles.banner, styles.checking]}>
         <ActivityIndicator size="small" color="#64748b" />
-        <Text style={[styles.text, styles.textChecking]}>  Checking server…</Text>
+        <Text style={[styles.text, styles.textChecking]}>  Connecting to server…</Text>
       </View>
     );
   }
