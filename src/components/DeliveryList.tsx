@@ -104,7 +104,7 @@ export default function DeliveryList({ deliveries }: Props) {
       ) : (
         <FlatList
           data={deliveries}
-          keyExtractor={(_, i) => String(i)}
+          keyExtractor={(item, i) => item.farmerId + "-" + i}
           renderItem={({ item }) => <DeliveryRow item={item} />}
           scrollEnabled={false}
         />
