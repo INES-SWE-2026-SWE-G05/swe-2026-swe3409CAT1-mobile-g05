@@ -112,6 +112,7 @@ export function totals(deliveries: Delivery[]): {
   return {
     count:    deliveries.length,
     litres:   Math.round(deliveries.reduce((s, d) => s + d.litres, 0) * 10) / 10,
+    // rejected = deliveries the server flagged as high-risk (score >= 0.7)
     rejected: deliveries.filter(d => (d.riskScore ?? 0) >= 0.7).length,
     highRisk: deliveries.filter(d => riskLabel(d.riskScore ?? 0) === 'HIGH').length,
   };
