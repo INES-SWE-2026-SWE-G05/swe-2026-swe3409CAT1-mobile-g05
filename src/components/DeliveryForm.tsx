@@ -128,7 +128,7 @@ export default function DeliveryForm({ onSave }: Props) {
         <TouchableOpacity
           style={[styles.button, !isValid && styles.buttonDisabled]}
           onPress={handleSubmit}
-          disabled={false}
+          disabled={!isValid}
         >
           <Text style={styles.buttonText}>💾  Save Delivery</Text>
         </TouchableOpacity>
