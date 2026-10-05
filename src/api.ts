@@ -62,7 +62,7 @@ export async function getRisk(delivery: NewDelivery): Promise<RiskResponse | nul
 /**
  * Push a completed delivery to the backend.
  *
- * @returns  true on success, false when offline or server error.
+ * @returns  Promise<boolean> — true on HTTP 201/200, false on network error.
  */
 export async function sendDelivery(delivery: NewDelivery, riskScore: number): Promise<boolean> {
   try {
