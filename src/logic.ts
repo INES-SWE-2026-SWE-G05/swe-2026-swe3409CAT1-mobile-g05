@@ -125,3 +125,7 @@ export function riskColour(label: 'LOW' | 'MEDIUM' | 'HIGH'): string {
     default:       return '#22c55e';
   }
 }
+
+export function formatLitres(litres: number): string {
+  return `${litres.toFixed(1)} L`;
+}
