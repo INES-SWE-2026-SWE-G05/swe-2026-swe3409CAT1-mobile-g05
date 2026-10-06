@@ -106,7 +106,7 @@ export default function DeliveryList({ deliveries }: Props) {
           data={deliveries}
           keyExtractor={(item, i) => item.farmerId + "-" + i}
           renderItem={({ item }) => <DeliveryRow item={item} />}
-          scrollEnabled={false}
+          scrollEnabled={false}  // parent ScrollView handles scrolling
         />
       )}
     </View>
