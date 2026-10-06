@@ -11,12 +11,16 @@
  *
  * Uses the useServerHealth() hook from health.ts.
  */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useServerHealth } from '../health';
 
 export default function StatusBanner() {
   const { online, checking, retry } = useServerHealth();
+  const [checkedAt, setCheckedAt] = useState<string | null>(null);
+  useEffect(() => {
+    if (!checking) setCheckedAt(new Date().toLocaleTimeString());
+  }, [checking]);
 
   if (checking) {
     return (
