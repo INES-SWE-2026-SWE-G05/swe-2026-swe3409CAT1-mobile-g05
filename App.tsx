@@ -27,8 +27,10 @@ import type { Delivery, NewDelivery } from './src/logic';
 
 export default function App() {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
+  const [saving, setSaving] = useState(false);
 
   const handleSave = useCallback(async (form: NewDelivery) => {
+    setSaving(true);
     const errors = checkDelivery(form);
     if (Object.keys(errors).length) return; // form handles display
 
@@ -47,6 +49,7 @@ export default function App() {
       sent,
     };
     setDeliveries(prev => [delivery, ...prev]);
+    setSaving(false);
   }, []);
 
   return (
