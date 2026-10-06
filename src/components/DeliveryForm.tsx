@@ -67,6 +67,7 @@ export default function DeliveryForm({ onSave }: Props) {
   };
 
   const handleSubmit = () => {
+    // TODO: add haptic feedback on success
     const allTouched: Touched = { farmerId: true, litres: true, tempC: true, hoursSinceMilking: true };
     setTouched(allTouched);
     if (validate(form)) {
