@@ -1,7 +1,7 @@
 /**
  * M1 · MEMBER 4 · The rules of the app (pure TypeScript, no screens)
  *
- * Owner (your GitHub username): @
+ * Owner (Umkalsum): @umi
  * Your AI task in the swe3513-cat1 repository: A4 (api.py)
  *
  * WHAT MEMBER 4 DOES HERE
