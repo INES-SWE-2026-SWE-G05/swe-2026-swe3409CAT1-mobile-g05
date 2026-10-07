@@ -13,7 +13,7 @@ export default function DeliveryList({ deliveries }: Props) {
   const t = totals(deliveries);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, padding: 10 }}>
       <Text>
         {t.count} deliveries · {t.litres} L · {t.highRisk} high risk
       </Text>
