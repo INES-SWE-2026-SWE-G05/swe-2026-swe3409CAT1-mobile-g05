@@ -1,8 +1,8 @@
 /**
- * M5 · MEMBER 5 · Is the server reachable?  (also src/components/StatusBanner.tsx)
+ * M5 · yaya gouni souleyman · Is the server reachable?  (also src/components/StatusBanner.tsx)
  *
- * Owner (your GitHub username): @
- * Your AI task in the swe3513-cat1 repository: A5 (evaluate.py)
+ * GitHub: yayagouni0@ 
+ * Your AI task in the swe3513-cat1 repository: A5 (health.ts)
  *
  * WHAT MEMBER 5 DOES HERE
  * At the collection centre the network comes and goes. The collector must see
