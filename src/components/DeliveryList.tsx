@@ -1,4 +1,3 @@
-
 import { FlatList, Text, View } from 'react-native';
 import { riskLabel, totals } from '../logic';
 import type { Delivery } from '../logic';
@@ -43,4 +42,3 @@ export default function DeliveryList({ deliveries }: Props) {
     </View>
   );
 }
-
