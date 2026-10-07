@@ -7,13 +7,12 @@ swe3409-cat1 repository.
 Copy this, keep the line labels exactly as they are, and fill it in:
 
 ```markdown
-# Aline Uwase
-- GitHub: @aline-uwase
-- Member: 1
-- AI task (swe3513-cat1 repo): A1 data.py
-- Mobile task (swe3409-cat1 repo): M3 DeliveryList
-- What I did today:
-- One thing I am stuck on:
+# Umkalsum Karim
+- GitHub: @umi
+- Member: 4
+- Mobile task (swe3409-cat1 repo): M4 Fast api endpoints
+- What I did today:I pushed,updated and commited
+- One thing I am stuck on: I am kinda lost in cloning and pushing
 ```
 
 Before the end time, fill in "What I did today" and push again.
