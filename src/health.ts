@@ -10,7 +10,7 @@
  * checkHealth() here, then the banner that shows it.
  * Groups of 4 have no Member 5: both files stay as they are and nobody is marked on them.
  *
- * Done means: npm run test:health -> 3 pass; StatusBanner has no "TODO M5";
+ * Done means: npm run test:health -> 3 pass; the banner is implemented;
  * on the phone the banner says "Server OK", and "Offline..." after you stop the API.
  */
 
@@ -24,6 +24,16 @@
  *     catch { return 'offline'; }
  *     finally { clearTimeout(timer); } */
 export async function checkHealth(baseUrl: string, timeoutMs = 5000): Promise<'ok' | 'offline'> {
-  // TODO M5: write this, then delete this TODO line.
-  throw new Error('M5 checkHealth is not written yet');
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const response = await fetch(`${baseUrl}/health`, { signal: ctrl.signal });
+    if (!response.ok) return 'offline';
+    const body = await response.json() as { status?: string };
+    return body.status === 'ok' ? 'ok' : 'offline';
+  } catch {
+    return 'offline';
+  } finally {
+    clearTimeout(timer);
+  }
 }
