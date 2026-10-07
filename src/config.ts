@@ -6,4 +6,4 @@
  * and start the API with:  uvicorn milkcheck.api:app --host 0.0.0.0 --app-dir src
  * Test it first in the phone's browser: http://<IP>:8000/health
  */
-export const API_URL = 'http://192.168.1.20:8000';
+export const API_URL = 'http://192.168.0.4:8000';

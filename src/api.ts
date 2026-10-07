@@ -1,41 +1,100 @@
 /**
- * M4 · MEMBER 2 · Talk to the group's Python API  (also App.tsx and src/config.ts)
+ * M4 · MEMBER 2 · API integration layer
  *
- * Owner (your GitHub username): @
- * Your AI task in the swe3513-cat1 repository: A2 (stats.py)
+ * Owner (GitHub): @umkalsumkarim72
+ * AI task       : A2 (stats.py) in swe3513-cat1 repository
  *
- * WHAT MEMBER 2 DOES HERE
- * You are the mobile integrator. First write the two functions below (their
- * tests use a fake server, so you can start at once). Then, when Members 1, 3
- * and 4 have merged, finish App.tsx so a saved delivery gets its risk from the
- * API and is sent to it, put the laptop address in src/config.ts, run the app
- * on a phone and push the screenshot docs/screenshot.png.
+ * Provides typed wrappers for the FastAPI backend endpoints:
+ *   getRisk()       → POST /risk
+ *   sendDelivery()  → POST /deliveries
+ *   getSummary()    → GET  /summary
  *
- * Rule for both functions: never throw, and give up after timeoutMs.
- *   const ctrl = new AbortController();
- *   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
- *   try { ... fetch(url, { signal: ctrl.signal }) ... }
- *   catch { return <the "failed" value>; }
- *   finally { clearTimeout(timer); }
- *
- * Done means: npm run test:api -> 6 pass; App.tsx has no "TODO M4"; docs/screenshot.png pushed.
+ * All functions handle network errors gracefully and return
+ * null (or fallback values) so the app stays usable offline.
  */
-import type { NewDelivery } from './logic';
+import { BASE_URL, TIMEOUT_MS } from './config';
+import type { NewDelivery, Delivery } from './logic';
 
-/** GET {baseUrl}/risk?temp_c=<tempC>&hours=<hours>
- *  If res.ok: read the JSON and return { risk: body.risk, label: body.label }.
- *  If the answer is not ok, the network fails or the time runs out: return null. */
-export async function getRisk(
-  baseUrl: string, tempC: number, hours: number, timeoutMs = 5000,
-): Promise<{ risk: number; label: string } | null> {
-  // TODO M4: write this, then delete this TODO line.
-  throw new Error('M4 getRisk is not written yet');
+export type RiskResponse   = { risk_score: number; risk_label: 'LOW' | 'MEDIUM' | 'HIGH' };
+export type SummaryRow     = { sector: string; total_litres: number; deliveries: number; rejected: number; rejection_rate: number };
+export type SummaryResponse = { sectors: SummaryRow[]; litres_per_day: { date: string; total_litres: number }[] };
+
+// ── internal fetch with timeout ────────────────────────────────
+async function fetchWithTimeout(url: string, options: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
 }
 
-/** POST {baseUrl}/deliveries with JSON in the Python names (snake_case):
- *    { farmer_id: d.farmerId, litres: d.litres, temp_c: d.tempC, hours: d.hours }
- *  headers: { 'Content-Type': 'application/json' }.  Return res.ok (true/false); false on any error. */
-export async function sendDelivery(baseUrl: string, d: NewDelivery, timeoutMs = 5000): Promise<boolean> {
-  // TODO M4: write this, then delete this TODO line.
-  throw new Error('M4 sendDelivery is not written yet');
+// ── getRisk ─────────────────────────────────────────────────────
+/**
+ * Ask the backend for a milk rejection risk score.
+ *
+ * @param delivery  The form values collected by the collector.
+ * @returns         RiskResponse or null when the server is unreachable.
+ */
+export async function getRisk(delivery: NewDelivery): Promise<RiskResponse | null> {
+  try {
+    const response = await fetchWithTimeout(`${BASE_URL}/risk`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        litres: delivery.litres,
+        temp_c: delivery.tempC,
+        hours_since_milking: delivery.hoursSinceMilking,
+      }),
+    });
+    if (!response.ok) return null;
+    return (await response.json()) as RiskResponse;
+  } catch {
+    return null;
+  }
+}
+
+// ── sendDelivery ────────────────────────────────────────────────
+/**
+ * Push a completed delivery to the backend.
+ *
+ * @returns  true on success, false when offline or server error.
+ */
+export async function sendDelivery(delivery: NewDelivery, riskScore: number): Promise<boolean> {
+  try {
+    const response = await fetchWithTimeout(`${BASE_URL}/deliveries`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        farmer_id: delivery.farmerId,
+        litres: delivery.litres,
+        temp_c: delivery.tempC,
+        hours_since_milking: delivery.hoursSinceMilking,
+        risk_score: riskScore,
+      }),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+// ── getSummary ──────────────────────────────────────────────────
+/**
+ * Fetch aggregated sector and daily-litres summary from the backend.
+ *
+ * @returns  SummaryResponse or null when offline.
+ */
+export async function getSummary(): Promise<SummaryResponse | null> {
+  try {
+    const response = await fetchWithTimeout(`${BASE_URL}/summary`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) return null;
+    return (await response.json()) as SummaryResponse;
+  } catch {
+    return null;
+  }
 }

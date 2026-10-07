@@ -1,52 +1,71 @@
 /**
- * M4 · MEMBER 2 · Put the screens together and connect them to the API
+ * App.tsx  –  Root component & screen orchestrator
  *
- * Owner (your GitHub username): @
+ * Owner (M4): @umkalsumkarim72
  *
- * This file already runs: a saved delivery is added to the list with no risk
- * and "Saved on phone". Your job, after src/api.ts works and Members 1, 3 and 4
- * have merged (git pull):
- * 1. In addDelivery, make it async and call
- *        const result = await getRisk(API_URL, d.tempC, d.hours);
- *        const sent = await sendDelivery(API_URL, d);
- *    then save risk: result ? result.risk : null, and sent.
- *    (import { getRisk, sendDelivery } from './src/api';)
- * 2. Put the laptop's address in src/config.ts.
- * 3. Run on a phone (npx expo start, scan with Expo Go). Save one cold, fresh
- *    can (6 °C, 1 h) and one warm, old can (28 °C, 6 h). Take a screenshot,
- *    save it as docs/screenshot.png and push it through a pull request.
+ * Wires together:
+ *  – DeliveryForm   (Member 3 / M2)
+ *  – DeliveryList   (Member 1 / M3)
+ *  – StatusBanner   (Member 5 / M5)
+ *
+ * Flow:
+ *  1. On mount, ping /health via health.ts (Member 5).
+ *  2. Show StatusBanner at the top.
+ *  3. User fills DeliveryForm → onSave:
+ *     a. Call getRisk() for a risk score.
+ *     b. Attempt sendDelivery(); mark item as sent/saved.
+ *     c. Prepend delivery to the list.
  */
-import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-
+import React, { useCallback, useState } from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { getRisk, sendDelivery } from './src/api';
 import DeliveryForm from './src/components/DeliveryForm';
 import DeliveryList from './src/components/DeliveryList';
 import StatusBanner from './src/components/StatusBanner';
-import { API_URL } from './src/config';
+import { checkDelivery, riskLabel } from './src/logic';
 import type { Delivery, NewDelivery } from './src/logic';
 
 export default function App() {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
 
-  function addDelivery(d: NewDelivery) {
-    // TODO M4: get the risk and send the delivery to the API (see step 1 above), then delete this line.
-    const saved: Delivery = { ...d, id: String(Date.now()), risk: null, sent: false };
-    setDeliveries((old) => [saved, ...old]);
-  }
+  const handleSave = useCallback(async (form: NewDelivery) => {
+    const errors = checkDelivery(form);
+    if (Object.keys(errors).length) return; // form handles display
+
+    // 1. Get risk score from server (or use local fallback 0.5)
+    const riskResp = await getRisk(form);
+    const score    = riskResp?.risk_score ?? 0.5;
+
+    // 2. Try to send to server
+    const sent = await sendDelivery(form, score);
+
+    // 3. Add to local list
+    const delivery: Delivery = {
+      ...form,
+      riskScore: score,
+      riskLabel: riskLabel(score),
+      sent,
+    };
+    setDeliveries(prev => [delivery, ...prev]);
+  }, []);
 
   return (
-    <View style={styles.page}>
-      <Text style={styles.title}>Milk Check</Text>
-      <StatusBanner apiUrl={API_URL} />
-      <DeliveryForm onSave={addDelivery} />
-      <DeliveryList deliveries={deliveries} />
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.appTitle}>🥛 Milk Collect</Text>
+          <StatusBanner />
+        </View>
+        <DeliveryForm onSave={handleSave} />
+        <DeliveryList deliveries={deliveries} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, padding: 24, gap: 12, backgroundColor: '#fff' },
-  title: { fontSize: 24, fontWeight: '700', marginTop: 32 },
+  safe:      { flex: 1, backgroundColor: '#f8fafc' },
+  container: { padding: 20, paddingBottom: 48 },
+  header:    { marginBottom: 20 },
+  appTitle:  { fontSize: 24, fontWeight: '800', color: '#1e293b', marginBottom: 8 },
 });
