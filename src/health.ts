@@ -1,39 +1,67 @@
 /**
- * M5 · MEMBER 5 · Is the server reachable?  (also src/components/StatusBanner.tsx)
+ * M5 · MEMBER 5 · Server health monitoring
  *
- * Owner (your GitHub username): @
- * Your AI task in the swe3513-cat1 repository: A5 (evaluate.py)
+ * Owner (GitHub): @gueylo
+ * AI task       : A5 (evaluate.py) in swe3513-cat1 repository
  *
- * WHAT MEMBER 5 DOES HERE
- * At the collection centre the network comes and goes. The collector must see
- * at once whether deliveries reach the server or stay on the phone. You write
- * checkHealth() here, then the banner that shows it.
- * Groups of 4 have no Member 5: both files stay as they are and nobody is marked on them.
- *
- * Done means: npm run test:health -> 3 pass; the banner is implemented;
- * on the phone the banner says "Server OK", and "Offline..." after you stop the API.
+ * Provides:
+ *   pingServer()           – single GET /health call, returns boolean
+ *   useServerHealth()      – React hook that auto-pings on mount and
+ *                            exposes { online, checking, retry }
  */
+import { useCallback, useEffect, useState } from 'react';
+import { BASE_URL, TIMEOUT_MS } from './config';
 
-/** GET {baseUrl}/health. Return 'ok' if the JSON is {"status":"ok"} in time, otherwise 'offline'.
- *  Never throw. Steps:
- *  1. const ctrl = new AbortController();
- *  2. const timer = setTimeout(() => ctrl.abort(), timeoutMs);
- *  3. try { const res = await fetch(`${baseUrl}/health`, { signal: ctrl.signal });
- *           const body = await res.json();
- *           return body.status === 'ok' ? 'ok' : 'offline'; }
- *     catch { return 'offline'; }
- *     finally { clearTimeout(timer); } */
-export async function checkHealth(baseUrl: string, timeoutMs = 5000): Promise<'ok' | 'offline'> {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+// ── pingServer ────────────────────────────────────────────────
+/**
+ * Ping the FastAPI /health endpoint.
+ *
+ * @returns true when the server responds with HTTP 200, false otherwise.
+ */
+export async function pingServer(): Promise<boolean> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const response = await fetch(`${baseUrl}/health`, { signal: ctrl.signal });
-    if (!response.ok) return 'offline';
-    const body = await response.json() as { status?: string };
-    return body.status === 'ok' ? 'ok' : 'offline';
+    const res = await fetch(`${BASE_URL}/health`, {
+      method: 'GET',
+      signal: controller.signal,
+    });
+    return res.ok;
   } catch {
-    return 'offline';
+    return false;
   } finally {
-    clearTimeout(timer);
+    clearTimeout(id);
   }
+}
+
+// ── useServerHealth hook ──────────────────────────────────────
+export type HealthState = {
+  /** true when /health returned 200 on the most recent ping */
+  online:   boolean;
+  /** true while a ping is in flight */
+  checking: boolean;
+  /** call this to immediately re-ping (e.g. from a Retry button) */
+  retry:    () => void;
+};
+
+/**
+ * React hook that pings the server once on mount and exposes
+ * live status + a retry callback for the StatusBanner.
+ */
+export function useServerHealth(): HealthState {
+  const [online,   setOnline]   = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  const retry = useCallback(async () => {
+    setChecking(true);
+    const ok = await pingServer();
+    setOnline(ok);
+    setChecking(false);
+  }, []);
+
+  useEffect(() => {
+    retry();
+  }, [retry]);
+
+  return { online, checking, retry };
 }

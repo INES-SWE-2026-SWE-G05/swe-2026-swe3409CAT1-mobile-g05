@@ -1,43 +1,59 @@
-import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
-import { checkHealth } from '../health';
+/**
+ * M5 · MEMBER 5 · Server status banner
+ *
+ * Owner (GitHub): @gueylo
+ * AI task       : A5 (evaluate.py) in swe3513-cat1 repository
+ *
+ * Shows a coloured strip at the top of the screen:
+ *   🟢 "Server OK"  (green)   – /health returned 200
+ *   🔴 "Offline"    (red)     – /health timed out or failed
+ *       + [Retry] button that triggers another ping
+ *
+ * Uses the useServerHealth() hook from health.ts.
+ */
+import React from 'react';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useServerHealth } from '../health';
 
-type Props = { apiUrl: string };
+export default function StatusBanner() {
+  const { online, checking, retry } = useServerHealth();
 
-export default function StatusBanner({ apiUrl }: Props) {
-  const [status, setStatus] = useState<'checking' | 'ok' | 'offline'>('checking');
-  const check = useCallback(async () => {
-    setStatus('checking');
-    setStatus(await checkHealth(apiUrl, 3000));
-  }, [apiUrl]);
-
-  useEffect(() => { void check(); }, [check]);
-
-  const online = status === 'ok';
-  return (
-    <View accessibilityLiveRegion="polite" style={[styles.banner, online ? styles.online : status === 'offline' ? styles.offline : styles.checking]}>
-      <View style={styles.statusGroup}>
-        {status === 'checking' ? <ActivityIndicator color="#214E73" size="small" /> : <Text style={[styles.icon, online ? styles.onlineText : styles.offlineText]}>{online ? '✓' : '!'}</Text>}
-        <View style={styles.copy}>
-          <Text style={[styles.title, online ? styles.onlineText : styles.offlineText]}>{status === 'checking' ? 'Checking server…' : online ? 'Server OK' : 'Offline mode'}</Text>
-          {status === 'offline' ? <Text style={styles.caption}>Deliveries stay on this phone</Text> : null}
-        </View>
+  if (checking) {
+    return (
+      <View style={[styles.banner, styles.checking]}>
+        <ActivityIndicator size="small" color="#64748b" />
+        <Text style={[styles.text, styles.textChecking]}>  Checking server…</Text>
       </View>
-      <Pressable accessibilityRole="button" onPress={check} style={styles.retry}>
-        <Text style={styles.retryText}>Check again</Text>
-      </Pressable>
+    );
+  }
+
+  if (online) {
+    return (
+      <View style={[styles.banner, styles.online]}>
+        <Text style={[styles.text, styles.textOnline]}>🟢  Server OK</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.banner, styles.offline]}>
+      <Text style={[styles.text, styles.textOffline]}>🔴  Offline – running on local data</Text>
+      <TouchableOpacity onPress={retry} style={styles.retryBtn}>
+        <Text style={styles.retryText}>Retry</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  banner: { marginHorizontal: 18, borderRadius: 14, borderWidth: 1, paddingVertical: 12, paddingHorizontal: 13, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  online: { backgroundColor: '#E6F6EC', borderColor: '#68B985' },
-  offline: { backgroundColor: '#FFF1DF', borderColor: '#EAA64B' },
-  checking: { backgroundColor: '#EAF3F8', borderColor: '#91B2C5' },
-  statusGroup: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  icon: { width: 24, height: 24, borderRadius: 12, textAlign: 'center', color: '#FFFFFF', fontWeight: '900', lineHeight: 24, marginRight: 9, overflow: 'hidden' },
-  onlineText: { color: '#247647' }, offlineText: { color: '#9A5A14' },
-  copy: { flex: 1 }, title: { fontSize: 14, fontWeight: '800' }, caption: { color: '#8B6941', fontSize: 10, marginTop: 1 },
-  retry: { paddingHorizontal: 8, paddingVertical: 7 }, retryText: { color: '#214E73', fontSize: 12, fontWeight: '700', textDecorationLine: 'underline' },
+  banner:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 12 },
+  checking:     { backgroundColor: '#f1f5f9' },
+  online:       { backgroundColor: '#dcfce7' },
+  offline:      { backgroundColor: '#fee2e2' },
+  text:         { fontSize: 13, fontWeight: '600' },
+  textChecking: { color: '#64748b' },
+  textOnline:   { color: '#166534' },
+  textOffline:  { color: '#991b1b' },
+  retryBtn:     { backgroundColor: '#fff', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 },
+  retryText:    { color: '#ef4444', fontSize: 12, fontWeight: '700' },
 });
