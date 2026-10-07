@@ -1,0 +1,21 @@
+# Runs on GitHub every time someone pushes or opens a pull request.
+# 1) TypeScript check of every screen   2) tests for M1 (logic), M4 (api) and M5 (health)
+name: check
+
+on:
+  push:
+    branches: [main]   # after a merge
+  pull_request:        # on every pull request, before it is merged
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
