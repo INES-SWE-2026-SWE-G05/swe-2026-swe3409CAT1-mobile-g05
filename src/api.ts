@@ -1,7 +1,7 @@
 /**
  * M4 · MEMBER 2 · Talk to the group's Python API  (also App.tsx and src/config.ts)
  *
- * Owner (Umkalsum): @umi
+ * Owner (your GitHub username): @
  * Your AI task in the swe3513-cat1 repository: A2 (stats.py)
  *
  * WHAT MEMBER 2 DOES HERE
