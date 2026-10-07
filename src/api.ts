@@ -18,7 +18,7 @@
  *   catch { return <the "failed" value>; }
  *   finally { clearTimeout(timer); }
  *
- * Done means: npm run test:api -> 6 pass; App.tsx has no "TODO M4"; docs/screenshot.png pushed.
+ * Done means: npm run test:api -> 6 pass; App.tsx is wired; docs/screenshot.png pushed.
  */
 import type { NewDelivery } from './logic';
 
@@ -28,14 +28,49 @@ import type { NewDelivery } from './logic';
 export async function getRisk(
   baseUrl: string, tempC: number, hours: number, timeoutMs = 5000,
 ): Promise<{ risk: number; label: string } | null> {
-  // TODO M4: write this, then delete this TODO line.
-  throw new Error('M4 getRisk is not written yet');
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+
+  try {
+    const query = new URLSearchParams({
+      temp_c: String(tempC),
+      hours: String(hours),
+    });
+    const response = await fetch(`${baseUrl}/risk?${query}`, { signal: ctrl.signal });
+    if (!response.ok) return null;
+
+    const body = await response.json() as { risk: number; label: string };
+    return { risk: body.risk, label: body.label };
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /** POST {baseUrl}/deliveries with JSON in the Python names (snake_case):
  *    { farmer_id: d.farmerId, litres: d.litres, temp_c: d.tempC, hours: d.hours }
  *  headers: { 'Content-Type': 'application/json' }.  Return res.ok (true/false); false on any error. */
 export async function sendDelivery(baseUrl: string, d: NewDelivery, timeoutMs = 5000): Promise<boolean> {
-  // TODO M4: write this, then delete this TODO line.
-  throw new Error('M4 sendDelivery is not written yet');
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(`${baseUrl}/deliveries`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        farmer_id: d.farmerId,
+        litres: d.litres,
+        temp_c: d.tempC,
+        hours: d.hours,
+      }),
+      signal: ctrl.signal,
+    });
+    return response.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
 }
